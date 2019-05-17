@@ -22,9 +22,23 @@ bool fim;
 #define BLACKL 0
 #define TIMEOUT 3000
 
+//Variaveis e  constantes
+float KP = 0;
+float KI = 0;
+float KD = 0;
+double ajust = 0;
+double sum = 0;
+double rd = 0;
+double error[10] = {0,0,0,0,0,0,0,0,0,0};
+long pos = 0;
+byte sensorsInLine;
+int vmax = 50;
+long division = 0;
+bool forward = true;
+
 QTRSensorsRC qtrc((unsigned char[]){12,14,32,33,25,27},NUMSENSORS); ///Pinagem dos sensores
 
-unsigned int sensor_values[NUMSENSORS]; //Array de leitura
+unsigned int sensors[NUMSENSORS]; //Array de leitura
 
 //ESP 
 
@@ -48,7 +62,9 @@ unsigned int sensor_values[NUMSENSORS]; //Array de leitura
 
 void setup(){
 
+
   Serial.begin(115200);
+
 
   //MOTOR SETUP 
 
@@ -73,24 +89,9 @@ for(int i = 0; i < 350;i++){
   qtrc.calibrate();
   delay(20);
 }
-}
-
-
-//Variaveis e  constantes
-float KP = 0;
-float KI = 0;
-float KD = 0;
-double ajust = 0;
-double sum = 0;
-double rd = 0;
-double error[10] = {0,0,0,0,0,0,0,0,0,0};
-long pos = 0;
-byte sensorsInLine;
-int vmax = 50;
-long division = 0;
 
 //Inicia o bluetooth 
-ESP_BT.begin("ESP32_LED_Control"); //Nome do Sinal do bluetooth
+ESP_BT.begin ("ESP32_LED_Control"); //Nome do Sinal do bluetooth
 Serial.println("Bluetooth Device is Ready to pair");
 
 pinMode(LE_BUILTIN,OUTPUT); //Especifica o LED pin é OUTPUT
@@ -125,7 +126,7 @@ void loop() {
 
   posLine(WHITEL);
 
-  addToVec(pos - MID);
+  AddToVec(pos - MID);
 
   sum = 0;
   for(int i = 0;i<10;i++){
@@ -143,9 +144,9 @@ void loop() {
   else{
     forward = true;
     if(ajust > 0){
-      MotorControl(vmax,vmax - ajust);
+      MotorControl(vmax,vmax - ajust,true,true);
     }
-    else MotorControl(vmax + ajust, vmax);
+    else MotorControl(vmax + ajust, vmax,true,true);
   }
 }
 
@@ -165,13 +166,13 @@ void posLine(byte line){
       w = 1 - w;
     }
     if(w > 0.6){
-      sensorsInLine++
+      sensorsInLine++;
     }
     sum = sum + 1000*j*w;
     division = division + w;
   }
 
-  if(!sensorInLine){
+  if(!sensorsInLine){
     if(pos > MID){
       pos = 2*MID;
     }
