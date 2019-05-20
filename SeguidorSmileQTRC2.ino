@@ -179,9 +179,9 @@ void posLine(byte line){
     else{
       pos = 0;
     }
-    else{
-      pos = sum/division;
-    }
+  }
+  else{
+    pos = sum/division;
   }
 }
 
@@ -212,8 +212,10 @@ void MotorControl(int velocidadeA, int velocidadeB, bool sa, bool sb){
   
   }
 
+int i = 0;
+
 void AddToVec(double err){
-  for(int i = 8, i => 0,i--){
+  for(i = 8; i >= 0;i--){
     error[i + 1] = error[i];
   }
   error[0] = err;
@@ -237,9 +239,6 @@ float lerBT(){
     }
   }
   return numero.toFloat();
-}
-      }
-    }
 }
   
   
