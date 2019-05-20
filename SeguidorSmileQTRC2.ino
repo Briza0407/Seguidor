@@ -17,23 +17,23 @@ bool fim;
 //Sensores
 #define EDGEVAL 800
 #define NUMSENSORS 8 //Quantidade dos sensores
-#define MID ((NUMSENSORS - 1)*500)
-#define WHITEL 1
-#define BLACKL 0
+#define MID ((NUMSENSORS - 1)*500) //Referência que queremos que o robô siga
+#define WHITEL 1 //Caso a linha seja branca
+#define BLACKL 0 //Caso a linha seja preta
 #define TIMEOUT 3000
 
-//Variaveis e  constantes
-float KP = 0;
-float KI = 0;
-float KD = 0;
-double ajust = 0;
-double sum = 0;
-double rd = 0;
-double error[10] = {0,0,0,0,0,0,0,0,0,0};
-long pos = 0;
-byte sensorsInLine;
-int vmax = 50;
-long division = 0;
+//Variaveis e  constantes 
+float KP = 0; //Constante de proporcionalidade do P
+float KI = 0; //Constante de proporcionalidade do I 
+float KD = 0; //Constante de proporcionalidade do D
+double ajust = 0; //Correção do robô
+double sum = 0; //Soma do I 
+double rd = 0; 
+double error[10] = {0,0,0,0,0,0,0,0,0,0}; //Array de erros referentes a referência
+long pos = 0; //Posição do robô 
+byte sensorsInLine; //Sensores tocando na linha
+int vmax = 50; //Força padrão do PWM do robô
+long division = 0; //Divisão da regra de três da leitura dos sensores
 bool forward = true;
 
 QTRSensorsRC qtrc((unsigned char[]){12,14,32,33,25,27},NUMSENSORS); ///Pinagem dos sensores
@@ -86,7 +86,7 @@ void setup(){
 
 Serial.print("CALIBRANDO");
 for(int i = 0; i < 350;i++){
-  qtrc.calibrate();
+  qtrc.calibrate(); //Função de calibração dos sensores QTRC
   delay(20);
 }
 
@@ -99,22 +99,22 @@ Serial.print("Start");
 
 //Definição do KP,KI,KD
 
-KP = lerBT();
+KP = lerBT(); //Lê o valor mandado pelo celular para definir o KP
 Serial.print("O KP é ");
 Serial.println(KP);
 delay(1000);
 
-KI = lerBT();
+KI = lerBT(); //Lê o valor mandado pelo celular para definir o KI
 Serial.print("O KI é ");
 Serial.println(KI);
 delay(1000);
-
-KD = lerBT();
+ 
+KD = lerBT(); //Lê o valor mandado pelo celular para definir o KD
 Serial.print("O KD é ");
 Serial.println(KD);
 delay(1000);
 
-vmax = lerBT();
+vmax = lerBT(); //Lê o valor mandado pelo celular para definir a força padrão(vmax)
 Serial.print("O vmax é ");
 Serial.println(vmax);
 delay(1000);
@@ -124,15 +124,15 @@ delay(1000);
 
 void loop() {
 
-  posLine(WHITEL);
+  posLine(WHITEL); //Função que define a posição do robô com a linha sendo branca
 
-  AddToVec(pos - MID);
+  AddToVec(pos - MID); //Redefinação da ordem dos erros OBS:Importante para a Derivada
 
-  sum = 0;
+  sum = 0; 
   for(int i = 0;i<10;i++){
     sum = sum + error[i]; //Integral
   }
-  ajust = KP*error[0] + KD*(error[0] - error[1]) + KI*sum;  //Calculo do ajust
+  ajust = KP*error[0] + KD*(error[0] - error[1]) + KI*sum;  //Calculo do ajust com PID
 
   Serial.println(ajust);
   if(ABS(ajust) > 3500){
@@ -153,7 +153,7 @@ void loop() {
 
 void posLine(byte line){
 
-  qtrc.read(sensors);
+  qtrc.read(sensors); //Função de leitura dos sensores
 
   double w,v,sum = 0,division = 0;
   sensorsInLine = 0;
@@ -165,7 +165,7 @@ void posLine(byte line){
     if(line){
       w = 1 - w;
     }
-    if(w > 0.6){
+    if(w > 0.6){ //Esse 0.6 foi teste, um valor adequado
       sensorsInLine++;
     }
     sum = sum + 1000*j*w;
